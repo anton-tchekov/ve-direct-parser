@@ -7,7 +7,7 @@
 typedef struct
 {
 	int X, Y, W, H;
-	int OX, OY, Advance;
+	int Advance;
 } GlyphInfo;
 
 typedef struct
@@ -63,9 +63,6 @@ static void render_glyph(Glyph *g, int chr, TTF_Font *ttf, SDL_Color color)
 
 	int minx, maxx, miny, maxy, advance;
 	TTF_GlyphMetrics32(ttf, chr, &minx, &maxx, &miny, &maxy, &advance);
-
-	g->Info.OX = minx;
-	g->Info.OY = miny;
 	g->Info.Advance = advance;
 }
 
@@ -214,7 +211,7 @@ int render_char(int x, int y, int c)
 	if(c != ' ')
 	{
 		SDL_Rect src = { cur->X, cur->Y, cur->W, cur->H };
-		SDL_Rect dst = { x + cur->OX, y + cur->OY, cur->W, cur->H };
+		SDL_Rect dst = { x, y, cur->W, cur->H };
 		SDL_RenderCopy(renderer, font, &src, &dst);
 	}
 

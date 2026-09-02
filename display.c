@@ -5,8 +5,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#define CENSOR 1
-
 int w = 0;
 
 static void printstr(int x, int y, int font, const char *s)
@@ -104,7 +102,7 @@ static double voltage_to_percent(const VMap *vmap, int len, double voltage)
 	return vmap[len - 1].Percent;
 }
 
-#define N_BARS  40
+#define N_BARS  46
 #define PADDING  8
 #define SPACING 10
 #define BAR_W    6
@@ -125,27 +123,47 @@ static void corners(int x, int y, int w, int h, int l, int t)
 	fill_rect(x + w - t, y + h - l, t, l - t);
 }
 
+void r_to_g(float percent)
+{
+	if(percent < 50.0f)
+	{
+		set_color(255, 255.0f * (percent / 50.0f), 0);
+	}
+	else
+	{
+		set_color(255.0f * ((100.0f - percent) / 50.0f), 255, 0);
+	}
+}
+
 static void bar(int x, int y, double percent)
 {
 	corners(x, y, N_BARS * SPACING - (SPACING - BAR_W) + 2 * PADDING,
 		BAR_H + 2 * PADDING, 15, 3);
 
 	int count = percent / 100.0 * N_BARS;
-	for(int i = 0; i < count; ++i)
+	for(int i = 0; i < N_BARS; ++i)
 	{
-		fill_rect(x + PADDING + i * SPACING, y + SPACING, BAR_W, BAR_H);
+		if(i < count)
+		{
+			r_to_g(i * 100.0 / N_BARS);
+		}
+		else
+		{
+			set_color(60, 60, 60);
+		}
+
+		fill_rect(x + PADDING + i * SPACING, y + PADDING, BAR_W, BAR_H);
 	}
 }
 
 static void charge_level(double voltage)
 {
 	double percent = voltage_to_percent(vmap_lifepo4, ARRLEN(vmap_lifepo4), voltage);
-
 	printxy(5, 10, "Battery Charge Level: %6.2f %%", percent);
-	bar(10, 50, percent);
+	bar(8, 50, percent);
 }
 
-void display_data(void)
+void display_data(bool censor)
 {
 	set_color(255, 255, 255);
 
@@ -160,7 +178,7 @@ void display_data(void)
 	int h;
 	SDL_GetWindowSize(window, &w, &h);
 
-	if(CENSOR)
+	if(censor)
 	{
 		for(int i = 6; i < 11; ++i)
 		{

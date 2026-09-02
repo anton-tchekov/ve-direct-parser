@@ -40,12 +40,13 @@ int main(int argc, char **argv)
 
 	parser_thread_start(fd);
 
+	bool censor = false;
 	int running = 1;
 	while(running)
 	{
 		set_color(0, 0, 0);
 		gfx_clear();
-		display_data();
+		display_data(censor);
 		gfx_update();
 
 		SDL_Event e;
@@ -65,6 +66,10 @@ int main(int argc, char **argv)
 			{
 			case SDL_SCANCODE_ESCAPE:
 				running = 0;
+				break;
+
+			case SDL_SCANCODE_C:
+				censor = !censor;
 				break;
 
 			default:
