@@ -88,7 +88,7 @@ const char *get_state_of_operation(VictronData *data)
 
 const char *get_tracker_operation_mode(VictronData *data)
 {
-	return map_find(data->StateOfOperation, map_mppt);
+	return map_find(data->TrackerOperationMode, map_mppt);
 }
 
 const char *get_device_name(VictronData *data)
