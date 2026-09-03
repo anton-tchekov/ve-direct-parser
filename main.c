@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 
 	bool censor = false;
 	int running = 1;
+	int x = 0, y = 0;
 	while(running)
 	{
 		set_color(0, 0, 0);
@@ -50,15 +51,34 @@ int main(int argc, char **argv)
 		gfx_update();
 
 		SDL_Event e;
-		if(!SDL_WaitEvent(&e))
+		/*if(!SDL_WaitEvent(&e))
 		{
 			running = 0;
-		}
+		}*/
+
+		while(SDL_PollEvent(&e)) {
 
 		switch(e.type)
 		{
 		case SDL_QUIT:
 			running = 0;
+			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			if(e.button.button == SDL_BUTTON_LEFT)
+			{
+				x = e.button.x;
+				y = e.button.y;
+			}
+			break;
+
+		case SDL_MOUSEMOTION:
+			if(e.button.button == SDL_BUTTON_LEFT)
+			{
+				gfx_origin_move(e.button.x - x, e.button.y - y);
+				x = e.button.x;
+				y = e.button.y;
+			}
 			break;
 
 		case SDL_KEYDOWN:
@@ -79,6 +99,8 @@ int main(int argc, char **argv)
 
 		default:
 			break;
+		}
+
 		}
 	}
 

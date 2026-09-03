@@ -217,28 +217,30 @@ void display_data(bool censor)
 	printfmt(0, 9, 1, " %d", data.DaySequenceNumber);
 
 	// Right
-	printstr(1, 0, 0, "Product ID:");
-	printfmt(1, 0, 1, " 0x%04X", data.ProductId);
-	printstr(1, 1, 0, "Serial Number:");
-	printfmt(1, 1, 1, " %s", data.SerialNumber);
-	printstr(1, 2, 0, "PV Voltage:");
-	printfmt(1, 2, 1, " %5.2f V", get_pv_volts(&data));
-	printstr(1, 3, 0, "PV Current:");
-	printfmt(1, 3, 1, " %5.2f A", get_pv_amps(&data));
-	printstr(1, 4, 0, "PV Power:");
-	printfmt(1, 4, 1, " %5.2f W", get_pv_watts(&data));
-	printstr(1, 5, 0, "MPPT State:");
-	printfmt(1, 5, 1, " %s", get_tracker_operation_mode(&data));
+	printstr(1, 1, 0, "Product ID:");
+	printfmt(1, 1, 1, " 0x%04X", data.ProductId);
+	printstr(1, 2, 0, censor ? "Serial Number:" : "Serial Number: (Press C to hide)");
+	printfmt(1, 2, 1, " %s", data.SerialNumber);
+	printstr(1, 3, 0, "Firmware Version:");
+	printfmt(1, 3, 1, " %d.%02d", data.FirmwareVersion / 100, data.FirmwareVersion % 100);
+	printstr(1, 4, 0, "PV Voltage:");
+	printfmt(1, 4, 1, " %5.2f V", get_pv_volts(&data));
+	printstr(1, 5, 0, "PV Current:");
+	printfmt(1, 5, 1, " %5.2f A", get_pv_amps(&data));
+	printstr(1, 6, 0, "PV Power:");
+	printfmt(1, 6, 1, " %5.2f W", get_pv_watts(&data));
+	printstr(1, 7, 0, "MPPT State:");
+	printfmt(1, 7, 1, " %s", get_tracker_operation_mode(&data));
 	if(data.OffReason)
 	{
-		printstr(1, 6, 0, "Off Reason:");
-		printfmt(1, 6, 1, " %s", get_off_reason(&data));
+		printstr(1, 8, 0, "Off Reason:");
+		printfmt(1, 8, 1, " %s", get_off_reason(&data));
 	}
 
-	printstr(1, 7, 0, "Yield Yesterday:");
-	printfmt(1, 7, 1, " %d Wh", get_yield_yesterday_wh(&data));
-	printstr(1, 8, 0, "Maximum Power Yesterday:");
-	printfmt(1, 8, 1, " %d W", data.MaximumPowerYesterday);
-	printstr(1, 9, 0, "Yield Total:");
-	printfmt(1, 9, 1, " %d Wh", get_yield_total_wh(&data));
+	printstr(1, 9, 0, "Yield Yesterday:");
+	printfmt(1, 9, 1, " %d Wh", get_yield_yesterday_wh(&data));
+	printstr(1, 10, 0, "Maximum Power Yesterday:");
+	printfmt(1, 10, 1, " %d W", data.MaximumPowerYesterday);
+	printstr(1, 11, 0, "Yield Total:");
+	printfmt(1, 11, 1, " %d Wh", get_yield_total_wh(&data));
 }

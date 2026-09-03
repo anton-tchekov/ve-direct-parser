@@ -25,26 +25,19 @@ static SDL_Texture *font;
 static GlyphInfo glyphs[512];
 static int offset_render;
 static int offset_load;
+static int ox, oy;
 
 void gfx_destroy(void)
 {
-	if(font_surface)
-	{
-		SDL_FreeSurface(font_surface);
-	}
-
-	if(font)
-	{
-		SDL_DestroyTexture(font);
-	}
-
+	SDL_FreeSurface(font_surface);
+	SDL_DestroyTexture(font);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	TTF_Quit();
 	SDL_Quit();
 }
 
-int cmp_glyph(const void *a, const void *b)
+static int cmp_glyph(const void *a, const void *b)
 {
 	const Glyph *g = a;
 	const Glyph *h = b;
@@ -118,14 +111,6 @@ static void blit_glyph(Glyph *g)
 	glyphs[offset_load + g->Char] = *gi;
 }
 
-static void blit_glyphs(Glyph *chars)
-{
-	for(int i = 0; i < NUM_CHARS; ++i)
-	{
-		blit_glyph(chars + i);
-	}
-}
-
 int font_load(const char *file, int size)
 {
 	Glyph chars[NUM_CHARS];
@@ -136,9 +121,41 @@ int font_load(const char *file, int size)
 	}
 
 	qsort(chars, NUM_CHARS, sizeof(Glyph), cmp_glyph);
-	blit_glyphs(chars);
-	font = SDL_CreateTextureFromSurface(renderer, font_surface);
+	for(int i = 0; i < NUM_CHARS; ++i)
+	{
+		blit_glyph(chars + i);
+	}
+
 	offset_load += NUM_CHARS;
+	return 0;
+}
+
+static int load_default_fonts(void)
+{
+	font_surface = SDL_CreateRGBSurface(0,
+		FONT_TEX_SIZE, FONT_TEX_SIZE, 32, 0xff, 0xff00, 0xff0000, 0xff000000);
+	if(!font_surface)
+	{
+		return 1;
+	}
+
+	if(font_load("fonts/terminus.ttf", 32))
+	{
+		return 1;
+	}
+
+	if(font_load("fonts/arial.ttf", 20))
+	{
+		return 1;
+	}
+
+	font = SDL_CreateTextureFromSurface(renderer, font_surface);
+	if(!font)
+	{
+		return 1;
+	}
+
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	return 0;
 }
 
@@ -146,15 +163,15 @@ int gfx_init(int width, int height, const char *title)
 {
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
-		fprintf(stderr, "Error initializing SDL: %s\n",
-			SDL_GetError());
+		fprintf(stderr, "Error initializing SDL: %s\n", SDL_GetError());
+		gfx_destroy();
 		return 1;
 	}
 
 	if(TTF_Init())
 	{
 		printf("Loading initializing TTF: %s\n", TTF_GetError());
-		SDL_Quit();
+		gfx_destroy();
 		return 1;
 	}
 
@@ -162,46 +179,26 @@ int gfx_init(int width, int height, const char *title)
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		width, height, SDL_WINDOW_RESIZABLE)))
 	{
-		fprintf(stderr, "Error creating SDL window: %s\n",
-			SDL_GetError());
-		TTF_Quit();
-		SDL_Quit();
+		fprintf(stderr, "Error creating SDL window: %s\n", SDL_GetError());
+		gfx_destroy();
 		return 1;
 	}
 
 	if(!(renderer = SDL_CreateRenderer(window,
 		-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)))
 	{
-		fprintf(stderr, "Error creating SDL renderer: %s\n",
-			SDL_GetError());
-		SDL_DestroyWindow(window);
-		TTF_Quit();
-		SDL_Quit();
-		return 1;
-	}
-
-	font_surface = SDL_CreateRGBSurface(0,
-		FONT_TEX_SIZE, FONT_TEX_SIZE, 32, 0xff, 0xff00, 0xff0000, 0xff000000);
-	if(!font_surface)
-	{
+		fprintf(stderr, "Error creating SDL renderer: %s\n", SDL_GetError());
 		gfx_destroy();
 		return 1;
 	}
 
-	if(font_load("terminus.ttf", 32))
-	{
-		gfx_destroy();
-		return 1;
-	}
-
-	if(font_load("arial.ttf", 20))
+	if(load_default_fonts())
 	{
 		gfx_destroy();
 		return 1;
 	}
 
 	user_event = SDL_RegisterEvents(1);
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	return 0;
 }
 
@@ -211,7 +208,7 @@ int render_char(int x, int y, int c)
 	if(c != ' ')
 	{
 		SDL_Rect src = { cur->X, cur->Y, cur->W, cur->H };
-		SDL_Rect dst = { x, y, cur->W, cur->H };
+		SDL_Rect dst = { ox + x, oy + y, cur->W, cur->H };
 		SDL_RenderCopy(renderer, font, &src, &dst);
 	}
 
@@ -239,7 +236,7 @@ void gfx_update(void)
 
 void fill_rect(int x, int y, int w, int h)
 {
-	SDL_Rect rect = { x, y, w, h };
+	SDL_Rect rect = { ox + x, oy + y, w, h };
 	SDL_RenderFillRect(renderer, &rect);
 }
 
@@ -268,4 +265,10 @@ void gfx_send_quit_event(void)
 	memset(&event, 0, sizeof(event));
 	event.type = SDL_QUIT;
 	SDL_PushEvent(&event);
+}
+
+void gfx_origin_move(int x, int y)
+{
+	ox += x;
+	oy += y;
 }

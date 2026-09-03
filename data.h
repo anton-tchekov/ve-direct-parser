@@ -41,5 +41,6 @@ const char *get_error_msg(VictronData *data);
 const char *get_state_of_operation(VictronData *data);
 const char *get_tracker_operation_mode(VictronData *data);
 const char *get_device_name(VictronData *data);
+bool is_mppt(const char *name);
 
 #endif

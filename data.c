@@ -95,3 +95,9 @@ const char *get_device_name(VictronData *data)
 {
 	return map_find(data->ProductId, map_devices);
 }
+
+bool is_mppt(const char *name)
+{
+	// It's an MPPT if it's got MPPT in the name lol
+	return strstr(name, "MPPT") ? true : false;
+}

@@ -19,5 +19,6 @@ void render_str(int x, int y, const char *s);
 void main_thread_notify(void);
 void set_font(int font);
 void gfx_send_quit_event(void);
+void gfx_origin_move(int x, int y);
 
 #endif
