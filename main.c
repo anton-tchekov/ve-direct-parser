@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	parser_thread_quit();
 	gfx_destroy();
 	return 0;
 }

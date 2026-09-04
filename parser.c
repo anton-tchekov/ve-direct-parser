@@ -9,12 +9,15 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <poll.h>
 
 static pthread_t thread;
+static int msg_pipe[2];
 
 typedef struct
 {
-	int fd;
+	int serial_fd;
+	int msg_fd;
 } SerialThreadParams;
 
 static int parse_int(const char *a, const char *b, const char *v, int *out)
@@ -124,25 +127,58 @@ static void parse_char(int c)
 static void *thread_serial(void *args)
 {
 	SerialThreadParams *params = args;
-	int fd = params->fd;
+	int serial_fd = params->serial_fd;
+	int msg_fd = params->msg_fd;
+
+	struct pollfd fds[2] =
+	{
+		{ .fd = serial_fd, .events = POLLIN },
+		{ .fd = msg_fd,    .events = POLLIN }
+	};
+
+	char buf[1024];
 	for(;;)
 	{
-		char buf[1024];
-		int n = read(fd, buf, sizeof(buf));
-		if(n < 0)
+		int ret = 0;
+		do
 		{
-			fprintf(stderr, "(read) Error %d: %s\n", errno, strerror(errno));
-			break;
+			ret = poll(fds, ARRLEN(fds), -1);
 		}
-		else if(n == 0)
+		while(ret < 0 && errno == EINTR);
+		if(ret < 0)
 		{
-			fprintf(stderr, "(read) Disconnected\n");
+			fprintf(stderr, "(poll) Error %d: %s\n", errno, strerror(errno));
 			break;
 		}
 
-		for(int i = 0; i < n; ++i)
+		if(fds[1].revents & POLLIN)
 		{
-			parse_char(buf[i]);
+			char byte[1];
+			read(msg_fd, byte, 1);
+			if(byte[0] == 'Q')
+			{
+				return NULL;
+			}
+		}
+
+		if(fds[0].revents & POLLIN)
+		{
+			int n = read(serial_fd, buf, sizeof(buf));
+			if(n < 0 && errno != EINTR)
+			{
+				fprintf(stderr, "(read) Error %d: %s\n", errno, strerror(errno));
+				break;
+			}
+			else if(n == 0)
+			{
+				fprintf(stderr, "(read) Disconnected\n");
+				break;
+			}
+
+			for(int i = 0; i < n; ++i)
+			{
+				parse_char(buf[i]);
+			}
 		}
 	}
 
@@ -153,7 +189,15 @@ static void *thread_serial(void *args)
 int parser_thread_start(int fd)
 {
 	static SerialThreadParams params;
-	params.fd = fd;
+
+	if(pipe(msg_pipe) < 0)
+	{
+		fprintf(stderr, "(pipe) Error %d: %s\n", errno, strerror(errno));
+		return 1;
+	}
+
+	params.serial_fd = fd;
+	params.msg_fd = msg_pipe[0];
 
 	int ret = pthread_create(&thread, NULL, thread_serial, &params);
 	if(ret)
@@ -167,5 +211,15 @@ int parser_thread_start(int fd)
 
 void parser_thread_quit(void)
 {
+	char msg[1] = { 'Q' };
+	write(msg_pipe[1], msg, 1);
 
+	int ret = pthread_join(thread, NULL);
+	if(ret)
+	{
+		fprintf(stderr, "(pthread_join) Error %d: %s\n", ret, strerror(ret));
+	}
+
+	close(msg_pipe[0]);
+	close(msg_pipe[1]);
 }
