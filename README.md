@@ -18,3 +18,5 @@ Next Day:
 - Arrange values better
 - Detect if, device is MPPT or other
 - HEX Protocol: Display Past Data
+- Use poll(): Communication FDs for main thread<->Serial Thread
+- Properly join thread and close file on exit

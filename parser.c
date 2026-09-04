@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+static pthread_t thread;
+
 typedef struct
 {
 	int fd;
@@ -153,7 +155,6 @@ int parser_thread_start(int fd)
 	static SerialThreadParams params;
 	params.fd = fd;
 
-	pthread_t thread;
 	int ret = pthread_create(&thread, NULL, thread_serial, &params);
 	if(ret)
 	{
@@ -162,4 +163,9 @@ int parser_thread_start(int fd)
 	}
 
 	return 0;
+}
+
+void parser_thread_quit(void)
+{
+
 }
