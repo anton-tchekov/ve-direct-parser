@@ -1,6 +1,6 @@
 # VE-Direct Parser GUI
 
-Simple GUI for Victron VE-Direct Serial Protocol.
+Simple GUI for displaying Victron MPPT data over VE-Direct serial protocol.
 Uses SDL2 and SDL_ttf. Works on Linux only.
 
 Test on BlueSolar MPPT 100|20 48 V:
@@ -13,5 +13,4 @@ Next Day:
 
 ## TODO
 
-- Detect if, device is MPPT or other
 - HEX Protocol: Display Past Data

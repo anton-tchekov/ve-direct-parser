@@ -3,15 +3,7 @@
 
 const char *map_find(uint32_t code, const MapInt *map)
 {
-	for(int i = 0; map[i].name; ++i)
-	{
-		if(code == map[i].code)
-		{
-			return map[i].name;
-		}
-	}
-
-	return NULL;
+	return map_value(map_idx(code, map), map);
 }
 
 int map_idx(uint32_t code, const MapInt *map)
@@ -29,7 +21,7 @@ int map_idx(uint32_t code, const MapInt *map)
 
 const char *map_value(int idx, const MapInt *map)
 {
-	return map[idx].name;
+	return idx < 0 ? "Unknown" : map[idx].name;
 }
 
 const MapInt map_devices[] =

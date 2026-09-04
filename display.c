@@ -41,25 +41,15 @@ static void printxy(int x, int y, const char *fmt, ...)
 	va_end(ap);
 }
 
-static void charge_level(double voltage)
+static void show_charge_level(double voltage)
 {
 	double percent = voltage_to_percent(voltage);
 	printxy(5, 10, "Battery Charge Level: %6.2f %%", percent);
 	render_battery_bar(8, 50, percent);
 }
 
-void display_data(bool censor)
+static void mppt_specific(VictronData data, bool censor)
 {
-	set_color(255, 255, 255);
-
-	VictronData data;
-	data_get(&data);
-	if(data.ProductId == 0)
-	{
-		printstr(0, 0, 1, " Waiting for data ...");
-		return;
-	}
-
 	if(censor)
 	{
 		for(int i = 6; i < 11; ++i)
@@ -68,11 +58,8 @@ void display_data(bool censor)
 		}
 	}
 
-	charge_level(get_battery_volts(&data));
+	show_charge_level(get_battery_volts(&data));
 
-	// Left
-	printstr(0, 0, 0, "Device:");
-	printfmt(0, 0, 1, " %s", get_device_name(&data));
 	if(data.ErrorCode)
 	{
 		printfmt(0, 1, 0, "Error (%d):", data.ErrorCode);
@@ -81,8 +68,6 @@ void display_data(bool censor)
 		set_color(255, 255, 255);
 	}
 
-	printstr(0, 2, 0, "Product ID:");
-	printfmt(0, 2, 1, " 0x%04X", data.ProductId);
 	printstr(0, 3, 0, "Serial Number:");
 	printfmt(0, 3, 1, " %s", data.SerialNumber);
 	printstr(0, 4, 0, "Firmware Version:");
@@ -127,4 +112,30 @@ void display_data(bool censor)
 	printfmt(0, 8, 1, " %d", data.DaySequenceNumber);
 	printstr(0, 9, 0, "Yield Total:");
 	printfmt(0, 9, 1, " %d Wh", get_yield_total_wh(&data));
+}
+
+void display_data(bool censor)
+{
+	set_color(255, 255, 255);
+
+	VictronData data;
+	data_get(&data);
+	if(data.ProductId == 0)
+	{
+		printstr(0, 0, 1, " Waiting for data ...");
+		return;
+	}
+
+	const char *name = get_device_name(&data);
+
+	printstr(0, 0, 0, "Device:");
+	printfmt(0, 0, 1, " %s", name);
+
+	printstr(0, 2, 0, "Product ID:");
+	printfmt(0, 2, 1, " 0x%04X", data.ProductId);
+
+	if(is_mppt(name))
+	{
+		mppt_specific(data, censor);
+	}
 }
