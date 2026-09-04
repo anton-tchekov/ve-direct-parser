@@ -1,7 +1,8 @@
 #include "display.h"
 #include "gfx.h"
 #include "data.h"
-#include "util.h"
+#include "voltage.h"
+#include "battery.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -40,125 +41,11 @@ static void printxy(int x, int y, const char *fmt, ...)
 	va_end(ap);
 }
 
-typedef struct
-{
-	double Percent;
-	double Voltage;
-} VMap;
-
-static const VMap vmap_lifepo4[] =
-{
-	{   0.0, 2.50 },
-	{  10.0, 3.00 },
-	{  20.0, 3.20 },
-	{  30.0, 3.22 },
-	{  40.0, 3.25 },
-	{  50.0, 3.26 },
-	{  60.0, 3.27 },
-	{  70.0, 3.30 },
-	{  80.0, 3.32 },
-	{  90.0, 3.35 },
-	{ 100.0, 3.40 }
-};
-
-static int series_cells(double voltage)
-{
-	if(voltage < 16.0)
-	{
-		return 4;
-	}
-
-	if(voltage < 32.0)
-	{
-		return 8;
-	}
-
-	return 16;
-}
-
-static double voltage_to_percent(const VMap *vmap, int len, double voltage)
-{
-	int cells = series_cells(voltage);
-	for(int i = 0; i < len; ++i)
-	{
-		double v_cur = vmap[i].Voltage * cells;
-		if(voltage < v_cur)
-		{
-			if(i == 0)
-			{
-				return vmap[i].Percent;
-			}
-
-			double v_prev = vmap[i - 1].Voltage * cells;
-			double pos = (voltage - v_prev) / (v_cur - v_prev);
-			double p_cur = vmap[i].Percent;
-			double p_prev = vmap[i - 1].Percent;
-			return p_prev + (p_cur - p_prev) * pos;
-		}
-	}
-
-	return vmap[len - 1].Percent;
-}
-
-#define N_BARS  46
-#define PADDING  8
-#define SPACING 10
-#define BAR_W    6
-#define BAR_H   30
-
-static void corners(int x, int y, int w, int h, int l, int t)
-{
-	fill_rect(x, y, l, t);
-	fill_rect(x, y + t, t, l - t);
-
-	fill_rect(x + w - l, y, l, t);
-	fill_rect(x + w - t, y + t, t, l - t);
-
-	fill_rect(x, y + h - t, l, t);
-	fill_rect(x, y + h - l, t, l - t);
-
-	fill_rect(x + w - l, y + h - t, l, t);
-	fill_rect(x + w - t, y + h - l, t, l - t);
-}
-
-void r_to_g(float percent)
-{
-	if(percent < 50.0f)
-	{
-		set_color(255, 255.0f * (percent / 50.0f), 0);
-	}
-	else
-	{
-		set_color(255.0f * ((100.0f - percent) / 50.0f), 255, 0);
-	}
-}
-
-static void bar(int x, int y, double percent)
-{
-	corners(x, y, N_BARS * SPACING - (SPACING - BAR_W) + 2 * PADDING,
-		BAR_H + 2 * PADDING, 15, 3);
-
-	int count = percent / 100.0 * N_BARS;
-	for(int i = 0; i < N_BARS; ++i)
-	{
-		if(i < count)
-		{
-			r_to_g(i * 100.0 / N_BARS);
-		}
-		else
-		{
-			set_color(60, 60, 60);
-		}
-
-		fill_rect(x + PADDING + i * SPACING, y + PADDING, BAR_W, BAR_H);
-	}
-}
-
 static void charge_level(double voltage)
 {
-	double percent = voltage_to_percent(vmap_lifepo4, ARRLEN(vmap_lifepo4), voltage);
+	double percent = voltage_to_percent(voltage);
 	printxy(5, 10, "Battery Charge Level: %6.2f %%", percent);
-	bar(8, 50, percent);
+	render_battery_bar(8, 50, percent);
 }
 
 void display_data(bool censor)

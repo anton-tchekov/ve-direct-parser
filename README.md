@@ -13,9 +13,6 @@ Next Day:
 
 ## TODO
 
-- Proper Makefile
-- Navigation in User interface
-- Arrange values better
 - Detect if, device is MPPT or other
 - HEX Protocol: Display Past Data
 - Use poll(): Communication FDs for main thread<->Serial Thread

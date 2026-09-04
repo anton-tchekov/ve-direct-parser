@@ -246,9 +246,9 @@ void set_color(int r, int g, int b)
 	SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 }
 
-void set_font(int font)
+void set_font(int font_id)
 {
-	offset_render = NUM_CHARS * font;
+	offset_render = NUM_CHARS * font_id;
 }
 
 void main_thread_notify(void)

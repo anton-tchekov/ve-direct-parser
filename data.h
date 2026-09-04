@@ -1,6 +1,8 @@
 #ifndef __DATA_H__
 #define __DATA_H__
 
+#include <stdbool.h>
+
 typedef struct
 {
 	int BatteryVoltage;        // mV
@@ -20,7 +22,7 @@ typedef struct
 	int ProductId;             // Id
 	int DaySequenceNumber;     // 0-364
 	int TrackerOperationMode;  // Index
-	char SerialNumber[12];      // LLYYMMSSSSS
+	char SerialNumber[12];     // LLYYMMSSSSS
 } VictronData;
 
 void data_update(VictronData *data);
