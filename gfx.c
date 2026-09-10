@@ -149,6 +149,11 @@ static int load_default_fonts(void)
 		return 1;
 	}
 
+	if(font_load("fonts/terminus.ttf", 16))
+	{
+		return 1;
+	}
+
 	font = SDL_CreateTextureFromSurface(renderer, font_surface);
 	if(!font)
 	{
@@ -222,6 +227,25 @@ void render_str(int x, int y, const char *s)
 		x += render_char(x, y, *s);
 		++s;
 	}
+}
+
+int str_width(const char *s)
+{
+	int w = 0;
+	while(*s)
+	{
+		int c = *s;
+		GlyphInfo *cur = glyphs + offset_render + c;
+		w += cur->Advance;
+		++s;
+	}
+
+	return w;
+}
+
+void render_str_centered(int x, int y, const char *s)
+{
+	render_str(x - str_width(s) / 2, y, s);
 }
 
 void gfx_clear(void)

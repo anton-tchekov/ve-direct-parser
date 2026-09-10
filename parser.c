@@ -2,6 +2,8 @@
 #include "util.h"
 #include "data.h"
 #include "gfx.h"
+#include "fields.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -38,6 +40,29 @@ static int parse_int(const char *a, const char *b, const char *v, int *out)
 	return 0;
 }
 
+static int parse_str(const char *a, const char *b,
+	const char *v, char *out, int len)
+{
+	if(!strcmp(a, b))
+	{
+		copy_str(out, len, v);
+		return 1;
+	}
+
+	return 0;
+}
+
+static void data_process(VictronData *data)
+{
+	data->DeviceName = map_find(data->ProductId, map_devices);
+	data->ErrorMsg = map_find(data->ErrorCode, map_err);
+	data->OffReason = map_find(data->OffReasonId, map_or);
+	data->IsMPPT = strstr(data->DeviceName, "MPPT") ? true : false;
+	data->LoadState = data->LoadOn ? "On" : "Off";
+	data->StateOfOperation = map_find(data->StateOfOperationId, map_cs);
+	data->TrackerOperationMode = map_find(data->TrackerOperationModeId, map_mppt);
+}
+
 static void parse_line(char *line, int len)
 {
 	static VictronData data;
@@ -61,7 +86,8 @@ static void parse_line(char *line, int len)
 
 	if(!strcmp(code, "Checksum"))
 	{
-		// Checksum is not verified currently
+		// TODO: Checksum is not verified currently
+		data_process(&data);
 		data_update(&data);
 		return;
 	}
@@ -70,18 +96,20 @@ static void parse_line(char *line, int len)
 	if(parse_int(code, "VPV",  value, &data.PanelVoltage)) { return; }
 	if(parse_int(code, "PPV",  value, &data.PanelPower)) { return; }
 	if(parse_int(code, "IL",   value, &data.LoadCurrent)) { return; }
-	if(parse_int(code, "OR",   value, &data.OffReason)) { return; }
+	if(parse_int(code, "OR",   value, &data.OffReasonId)) { return; }
 	if(parse_int(code, "H19",  value, &data.YieldTotal)) { return; }
 	if(parse_int(code, "H20",  value, &data.YieldToday)) { return; }
 	if(parse_int(code, "H21",  value, &data.MaximumPowerToday)) { return; }
 	if(parse_int(code, "H22",  value, &data.YieldYesterday)) { return; }
 	if(parse_int(code, "H23",  value, &data.MaximumPowerYesterday)) { return; }
 	if(parse_int(code, "ERR",  value, &data.ErrorCode)) { return; }
-	if(parse_int(code, "CS",   value, &data.StateOfOperation)) { return; }
-	if(parse_int(code, "FW",   value, &data.FirmwareVersion)) { return; }
+	if(parse_int(code, "CS",   value, &data.StateOfOperationId)) { return; }
 	if(parse_int(code, "HSDS", value, &data.DaySequenceNumber)) { return; }
-	if(parse_int(code, "MPPT", value, &data.TrackerOperationMode)) { return; }
+	if(parse_int(code, "MPPT", value, &data.TrackerOperationModeId)) { return; }
 	if(parse_int(code, "PID",  value, &data.ProductId)) { return; }
+
+	if(parse_str(code, "FW",   value, data.FirmwareVersion, sizeof(data.FirmwareVersion))) { return; }
+	if(parse_str(code, "SER#", value, data.SerialNumber, sizeof(data.SerialNumber))) { return; }
 
 	if(!strcmp(code, "LOAD"))
 	{
@@ -93,13 +121,6 @@ static void parse_line(char *line, int len)
 		{
 			data.LoadOn = 1;
 		}
-		return;
-	}
-
-	if(!strcmp(code, "SER#"))
-	{
-		strncpy(data.SerialNumber, value, sizeof(data.SerialNumber) - 1);
-		data.SerialNumber[sizeof(data.SerialNumber) - 1] = '\0';
 		return;
 	}
 }

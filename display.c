@@ -1,8 +1,10 @@
 #include "display.h"
 #include "gfx.h"
 #include "data.h"
+#include "util.h"
 #include "voltage.h"
 #include "battery.h"
+#include "daily.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -14,7 +16,7 @@ static void printstr(int x, int y, int font, const char *s)
 		set_color(180, 180, 180);
 	}
 
-	render_str(x * 300 + 5, y * 80 + font * 28 + 150, s);
+	render_str(x * 300 + 5, y * 80 + font * 28 + 167, s);
 	if(!font)
 	{
 		set_color(255, 255, 255);
@@ -41,11 +43,24 @@ static void printxy(int x, int y, const char *fmt, ...)
 	va_end(ap);
 }
 
+static void printat(int x, int y, const char *label, const char *fmt, ...)
+{
+	printstr(x, y, 0, label);
+
+	char buf[64];
+	va_list ap;
+	va_start(ap, fmt);
+	buf[0] = ' ';
+	vsnprintf(buf + 1, sizeof(buf) - 1, fmt, ap);
+	printstr(x, y, 1, buf);
+	va_end(ap);
+}
+
 static void show_charge_level(double voltage)
 {
 	double percent = voltage_to_percent(voltage);
-	printxy(5, 10, "Battery Charge Level: %6.2f %%", percent);
-	render_battery_bar(8, 50, percent);
+	printat(0, -2, "Battery Percent:", "%6.2f %%", percent);
+	render_battery_bar(8, 87, percent);
 }
 
 static void mppt_specific(VictronData data, bool censor)
@@ -62,56 +77,44 @@ static void mppt_specific(VictronData data, bool censor)
 
 	if(data.ErrorCode)
 	{
-		printfmt(0, 1, 0, "Error (%d):", data.ErrorCode);
+		printfmt(0, 1, 0, "Error:");
 		set_color(255, 0, 0);
-		printfmt(0, 1, 1, " %s", get_error_msg(&data));
+		printfmt(0, 1, 1, " %s", data.ErrorMsg);
 		set_color(255, 255, 255);
 	}
 
-	printstr(0, 3, 0, "Serial Number:");
-	printfmt(0, 3, 1, " %s", data.SerialNumber);
-	printstr(0, 4, 0, "Firmware Version:");
-	printfmt(0, 4, 1, " %d.%02d", data.FirmwareVersion / 100, data.FirmwareVersion % 100);
+	printat(0, 3, "Serial Number:", "%s", data.SerialNumber);
+	printat(0, 4, "Firmware Version:", "%s", format_fw_version(data.FirmwareVersion));
 
-	printstr(1, 2, 0, "Battery Voltage:");
-	printfmt(1, 2, 1, " %5.2f V", get_battery_volts(&data));
-	printstr(1, 3, 0, "Load Current:");
-	printfmt(1, 3, 1, " %5.2f A", get_load_amps(&data));
-	printstr(1, 4, 0, "Load Power:");
-	printfmt(1, 4, 1, " %5.2f W", get_load_watts(&data));
-	printstr(1, 5, 0, "Load State:");
-	printfmt(1, 5, 1, " %s", get_load_state(&data));
-	printstr(1, 6, 0, "State of Operation:");
-	printfmt(1, 6, 1, " %s", get_state_of_operation(&data));
+	printat(1, 2, "Battery Voltage:", "%5.2f V", get_battery_volts(&data));
+	printat(1, 3, "Load Current:", "%5.2f A", get_load_amps(&data));
+	printat(1, 4, "Load Power:", "%5.2f W", get_load_watts(&data));
+	printat(1, 5, "Load State:", "%s", data.LoadState);
+	printat(1, 6, "State of Operation:", "%s", data.StateOfOperation);
 
-	printstr(2, 2, 0, "PV Voltage:");
-	printfmt(2, 2, 1, " %5.2f V", get_pv_volts(&data));
-	printstr(2, 3, 0, "PV Current:");
-	printfmt(2, 3, 1, " %5.2f A", get_pv_amps(&data));
-	printstr(2, 4, 0, "PV Power:");
-	printfmt(2, 4, 1, " %5.2f W", get_pv_watts(&data));
-	printstr(2, 5, 0, "MPPT State:");
-	printfmt(2, 5, 1, " %s", get_tracker_operation_mode(&data));
-	if(data.OffReason)
+	printat(2, 2, "PV Voltage:", "%5.2f V", get_pv_volts(&data));
+	printat(2, 3, "PV Current:", "%5.2f A", get_pv_amps(&data));
+	printat(2, 4, "PV Power:", "%5.2f W", get_pv_watts(&data));
+	printat(2, 5, "MPPT State:", "%s", data.TrackerOperationMode);
+	if(data.OffReasonId)
 	{
-		printstr(2, 6, 0, "Off Reason:");
-		printfmt(2, 6, 1, " %s", get_off_reason(&data));
+		printat(2, 6, "Off Reason:", "%s", data.OffReason);
 	}
 
-	printstr(1, 8, 0, "Yield Today:");
-	printfmt(1, 8, 1, " %d Wh", get_yield_today_wh(&data));
-	printstr(1, 9, 0, "Maximum Power Today:");
-	printfmt(1, 9, 1, " %d W", data.MaximumPowerToday);
+	printat(1, 8, "Yield Today:", "%d Wh", get_yield_today_wh(&data));
+	printat(1, 9, "Maximum Power Today:", "%d W", data.MaximumPowerToday);
 
-	printstr(2, 8, 0, "Yield Yesterday:");
-	printfmt(2, 8, 1, " %d Wh", get_yield_yesterday_wh(&data));
-	printstr(2, 9, 0, "Maximum Power Yesterday:");
-	printfmt(2, 9, 1, " %d W", data.MaximumPowerYesterday);
+	printat(2, 8, "Yield Yesterday:", "%d Wh", get_yield_yesterday_wh(&data));
+	printat(2, 9, "Maximum Power Yesterday:", "%d W", data.MaximumPowerYesterday);
 
-	printstr(0, 8, 0, "Day Sequence Number:");
-	printfmt(0, 8, 1, " %d", data.DaySequenceNumber);
-	printstr(0, 9, 0, "Yield Total:");
-	printfmt(0, 9, 1, " %d Wh", get_yield_total_wh(&data));
+	printat(0, 8, "Day Sequence Number:", "%d", data.DaySequenceNumber);
+	printat(0, 9, "Yield Total:", "%d Wh", get_yield_total_wh(&data));
+
+	printat(2, -2, "View Past Data:", "^ Drag Up ^");
+	printat(2, -1, "Export Data as JSON:", "Press E");
+	printat(2,  0, "Hide Serial Number:", "Press C");
+
+	display_daily();
 }
 
 void display_data(bool censor)
@@ -126,15 +129,10 @@ void display_data(bool censor)
 		return;
 	}
 
-	const char *name = get_device_name(&data);
+	printat(0, 0, "Device:", "%s", data.DeviceName);
+	printat(0, 2, "Product ID:", "0x%04X", data.ProductId);
 
-	printstr(0, 0, 0, "Device:");
-	printfmt(0, 0, 1, " %s", name);
-
-	printstr(0, 2, 0, "Product ID:");
-	printfmt(0, 2, 1, " 0x%04X", data.ProductId);
-
-	if(is_mppt(name))
+	if(data.IsMPPT)
 	{
 		mppt_specific(data, censor);
 	}

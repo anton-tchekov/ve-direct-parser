@@ -1,6 +1,7 @@
 #include "data.h"
 #include "gfx.h"
 #include "fields.h"
+#include "util.h"
 #include <pthread.h>
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -51,16 +52,6 @@ double get_load_watts(VictronData *data)
 	return get_load_amps(data) * get_battery_volts(data);
 }
 
-const char *get_load_state(VictronData *data)
-{
-	return data->LoadOn ? "On" : "Off";
-}
-
-const char *get_off_reason(VictronData *data)
-{
-	return map_find(data->OffReason, map_or);
-}
-
 int get_yield_total_wh(VictronData *data)
 {
 	return data->YieldTotal * 10;
@@ -76,28 +67,26 @@ int get_yield_yesterday_wh(VictronData *data)
 	return data->YieldYesterday * 10;
 }
 
-const char *get_error_msg(VictronData *data)
+const char *format_fw_version(const char *in)
 {
-	return map_find(data->ErrorCode, map_err);
-}
+	static char out[64];
 
-const char *get_state_of_operation(VictronData *data)
-{
-	return map_find(data->StateOfOperation, map_cs);
-}
+	if(isupper(in[0]) && isdigit(in[1]) && isdigit(in[2]) &&
+		isdigit(in[3]) && in[4] == '\0')
+	{
+		snprintf(out, sizeof(out), "Candidate %c for %c.%c%c\n",
+			in[0], in[1], in[2], in[3]);
+	}
+	else if(isdigit(in[0]) && isdigit(in[1]) &&
+		isdigit(in[2]) && in[3] == '\0')
+	{
+		snprintf(out, sizeof(out), "%c.%c%c\n",
+			in[0], in[1], in[2]);
+	}
+	else
+	{
+		copy_str(out, sizeof(out), in);
+	}
 
-const char *get_tracker_operation_mode(VictronData *data)
-{
-	return map_find(data->TrackerOperationMode, map_mppt);
-}
-
-const char *get_device_name(VictronData *data)
-{
-	return map_find(data->ProductId, map_devices);
-}
-
-bool is_mppt(const char *name)
-{
-	// It's an MPPT if it's got MPPT in the name lol
-	return strstr(name, "MPPT") ? true : false;
+	return out;
 }

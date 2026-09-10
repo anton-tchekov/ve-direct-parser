@@ -13,4 +13,5 @@ Next Day:
 
 ## TODO
 
-- HEX Protocol: Display Past Data
+- Bar chart for every day GUI
+- HEX Protocol: Read Past Data

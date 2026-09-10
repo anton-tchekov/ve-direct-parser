@@ -13,6 +13,8 @@
 #include "serial.h"
 #include "parser.h"
 #include "display.h"
+#include "data.h"
+#include "export.h"
 
 #define VE_DIRECT_BAUD B19200
 
@@ -39,6 +41,8 @@ int main(int argc, char **argv)
 	}
 
 	parser_thread_start(fd);
+
+	//printf("sizeof(VictronData) = %d\n", (int)sizeof(VictronData));
 
 	bool censor = false;
 	int running = 1;
@@ -85,6 +89,10 @@ int main(int argc, char **argv)
 
 				case SDL_SCANCODE_C:
 					censor = !censor;
+					break;
+
+				case SDL_SCANCODE_E:
+					export_data();
 					break;
 
 				default:
