@@ -115,7 +115,7 @@ static void render_day(int idx, HistoryDayRecord *record, uint32_t maxyield)
 	y = printd(x, y, "BAT Vmin", "%5.2f V", record->BatteryVoltageMinimum / 100.0);
 	y = printd(x, y, "BAT Imax", "%5.2f A", record->BatteryCurrentMaximum / 10.0);
 	y = printd(x, y, "PV Vmax",  "%5.2f V", record->PanelVoltageMaximum / 100.0);
-	y = printd(x, y, "Pmax",     "%5.2f W", record->PowerMaximum);
+	y = printd(x, y, "Pmax",     "%d W", record->PowerMaximum);
 	y -= 12;
 	y = printd(x, y, "Bulk",       "%s", format_time(record->TimeBulk));
 	y = printd(x, y, "Absorption", "%s", format_time(record->TimeAbsorbtion));
