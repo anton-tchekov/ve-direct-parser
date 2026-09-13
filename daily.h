@@ -1,6 +1,8 @@
 #ifndef __DAILY_H__
 #define __DAILY_H__
 
-void display_daily(void);
+#include "data.h"
+
+void display_daily(VictronData *data);
 
 #endif

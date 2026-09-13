@@ -29,7 +29,7 @@ int serial_open(const char *port, int baud)
 	tty.c_oflag = 0;
 	tty.c_cc[VMIN]  = 1;
 	tty.c_cc[VTIME] = 0;
-	tty.c_iflag &= ~(IGNBRK | IXON | IXOFF | IXANY);
+	tty.c_iflag &= ~(IGNBRK | ICRNL | IXON | IXOFF | IXANY);
 	tty.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CRTSCTS);
 	tty.c_cflag |= (CLOCAL | CREAD | CS8);
 	if(tcsetattr(fd, TCSANOW, &tty))

@@ -14,4 +14,4 @@ Next Day:
 ## TODO
 
 - Bar chart for every day GUI
-- HEX Protocol: Read Past Data
+- Export Hex data json

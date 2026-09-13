@@ -40,8 +40,25 @@ static const char *format_date(char *buf, size_t len, int i)
 	return buf;
 }
 
-static void render_day(int i)
+static void render_day(int i, HistoryDayRecord *record)
 {
+
+#if 0
+	uint32_t Yield;                 // 0.01 kWh
+	uint32_t Consumed;              // 0.01 kWh
+	uint16_t BatteryVoltageMaximum; // 0.01 V
+	uint16_t BatteryVoltageMinimum; // 0.01 V
+
+	uint16_t TimeBulk;              // min
+	uint16_t TimeAbsorbtion;        // min
+	uint16_t TimeFloat;             // min
+
+	uint32_t PowerMaximum;          // W
+	uint16_t BatteryCurrentMaximum; // 0.1 A
+	uint16_t PanelVoltageMaximum;   // 0.01 V
+	uint16_t DaySequenceNumber;     // -
+#endif
+
 	char buf[64];
 
 	int x = START_X + i * BAR_SPACING;
@@ -52,16 +69,19 @@ static void render_day(int i)
 	y -= 16;
 
 	render_str_centered(x, y, format_date(buf, sizeof(buf), i));
+
+	snprintf(buf, sizeof(buf), "Day %d", record->DaySequenceNumber);
+	render_str(x, y, buf);
 }
 
-void display_daily(void)
+void display_daily(VictronData *data)
 {
 	set_color(255, 255, 255);
 	set_font(2);
 
-	int num_days = 30;
-	for(int i = 0; i < num_days; ++i)
+	int num_days = data->TotalRecord.NumberOfDaysAvailable;
+	for(int i = 0; i <= num_days; ++i)
 	{
-		render_day(i);
+		render_day(i, &data->DailyRecord[i]);
 	}
 }

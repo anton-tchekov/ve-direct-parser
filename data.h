@@ -35,7 +35,7 @@ typedef struct
 	bool IsMPPT;
 
 	HistoryTotalRecord TotalRecord;
-	HistoryDayRecord DailyRecord[30];
+	HistoryDayRecord DailyRecord[31];
 } VictronData;
 
 void data_update(VictronData *data);

@@ -2,6 +2,7 @@
 #define __HEX_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // register 0x1050 - 0x106E
 // Size 34 bytes
@@ -27,9 +28,11 @@ typedef struct
 // Size 19 or 34 bytes
 typedef struct
 {
+	bool Available;
+
 	// uint8_t Reserved;               // Reserved (0 or 1)
 	uint8_t ErrorDatabase;          // = 0
-	uint8_t Erorrs[4];              // -
+	uint8_t Errors[4];              // -
 	uint32_t TotalYieldUser;        // 0.01 kWh
 	uint32_t TotalYieldSystem;      // 0.01 kWh
 	uint16_t PanelVoltageMaximum;   // 0.01 V
@@ -39,6 +42,8 @@ typedef struct
 	// uint8_t Padding[13];            // -
 } HistoryTotalRecord;
 
+int hex_checksum(const uint8_t *data, int len);
 int hex_convert(char *out, const uint8_t *data, int len);
+int hex_command_get(char *out, int id);
 
 #endif
