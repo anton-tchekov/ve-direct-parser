@@ -108,10 +108,10 @@ static void mppt_specific(VictronData *data, bool censor)
 	HistoryTotalRecord *t = &data->TotalRecord;
 	if(t->Available)
 	{
-		printat(3, 2, "PV Voltage Maximum:", "%5.2f V", t->PanelVoltageMaximum / 100.0);
-		printat(3, 3, "Battery Voltage Maximum:", "%5.2f V", t->BatteryVoltageMaximum / 100.0);
-		printat(3, 4, "Battery Voltage Minimum:", "%5.2f V", t->BatteryVoltageMinimum / 100.0);
-		printat(3, 5, "History Available:", "%d Days", t->NumberOfDaysAvailable);
+		printat(4, 2, "PV Voltage Maximum:", "%5.2f V", t->PanelVoltageMaximum / 100.0);
+		printat(4, 3, "Battery Voltage Maximum:", "%5.2f V", t->BatteryVoltageMaximum / 100.0);
+		printat(4, 4, "Battery Voltage Minimum:", "%5.2f V", t->BatteryVoltageMinimum / 100.0);
+		printat(4, 5, "History Available:", "%d Days", t->NumberOfDaysAvailable);
 		display_daily(data);
 	}
 }

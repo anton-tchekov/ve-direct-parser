@@ -109,8 +109,8 @@ static void render_day(int idx, HistoryDayRecord *record, uint32_t maxyield)
 	y -= 16;
 	y = prints(x, y, "Day %d", record->DaySequenceNumber);
 	y -= 12;
-	y = printd(x, y, "Yield",    "%5.2f kWh", record->Yield / 100.0);
-	y = printd(x, y, "Consumed", "%5.2f kWh", record->Consumed / 100.0);
+	y = printd(x, y, "Yield",    "%d Wh", record->Yield * 10);
+	y = printd(x, y, "Consumed", "%d Wh", record->Consumed * 10);
 	y = printd(x, y, "BAT Vmax", "%5.2f V", record->BatteryVoltageMaximum / 100.0);
 	y = printd(x, y, "BAT Vmin", "%5.2f V", record->BatteryVoltageMinimum / 100.0);
 	y = printd(x, y, "BAT Imax", "%5.2f A", record->BatteryCurrentMaximum / 10.0);
