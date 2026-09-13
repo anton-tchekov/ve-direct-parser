@@ -13,5 +13,4 @@ Next Day:
 
 ## TODO
 
-- Bar chart for every day GUI
-- Export Hex data json
+-  for every day GUI

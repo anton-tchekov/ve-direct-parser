@@ -33,16 +33,6 @@ static void printfmt(int x, int y, int font, const char *fmt, ...)
 	va_end(ap);
 }
 
-static void printxy(int x, int y, const char *fmt, ...)
-{
-	char buf[64];
-	va_list ap;
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	render_str(x, y, buf);
-	va_end(ap);
-}
-
 static void printat(int x, int y, const char *label, const char *fmt, ...)
 {
 	printstr(x, y, 0, label);
@@ -61,18 +51,6 @@ static void show_charge_level(double voltage)
 	double percent = voltage_to_percent(voltage);
 	printat(0, -2, "Battery Percent:", "%6.2f %%", percent);
 	render_battery_bar(8, 87, percent);
-}
-
-static void display_history_total_record(VictronData *data)
-{
-	HistoryTotalRecord *t = &data->TotalRecord;
-	if(t->Available)
-	{
-		printat(3, 2, "PV Voltage Maximum:", "%5.2f V", t->PanelVoltageMaximum / 100.0);
-		printat(3, 3, "Battery Voltage Maximum:", "%5.2f V", t->BatteryVoltageMaximum / 100.0);
-		printat(3, 4, "Battery Voltage Minimum:", "%5.2f V", t->BatteryVoltageMinimum / 100.0);
-		printat(3, 5, "History Available:", "%d Days", t->NumberOfDaysAvailable);
-	}
 }
 
 static void mppt_specific(VictronData *data, bool censor)
@@ -127,8 +105,15 @@ static void mppt_specific(VictronData *data, bool censor)
 	printat(2, -1, "Export Data as JSON:", "Press E");
 	printat(2,  0, "Hide Serial Number:", "Press C");
 
-	display_history_total_record(data);
-	display_daily(data);
+	HistoryTotalRecord *t = &data->TotalRecord;
+	if(t->Available)
+	{
+		printat(3, 2, "PV Voltage Maximum:", "%5.2f V", t->PanelVoltageMaximum / 100.0);
+		printat(3, 3, "Battery Voltage Maximum:", "%5.2f V", t->BatteryVoltageMaximum / 100.0);
+		printat(3, 4, "Battery Voltage Minimum:", "%5.2f V", t->BatteryVoltageMinimum / 100.0);
+		printat(3, 5, "History Available:", "%d Days", t->NumberOfDaysAvailable);
+		display_daily(data);
+	}
 }
 
 void display_data(bool censor)

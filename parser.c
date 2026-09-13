@@ -180,7 +180,6 @@ static void process_hex_get_response(VictronData *vd, uint8_t *data, int len)
 
 		HistoryTotalRecord *r = &vd->TotalRecord;
 
-		r->Available = true;
 		r->ErrorDatabase = data[5];
 		r->Errors[0] = data[6];
 		r->Errors[1] = data[7];
@@ -238,6 +237,10 @@ static void process_hex_get_response(VictronData *vd, uint8_t *data, int len)
 		{
 			hex_state = H_SEND;
 			next_id = get_response_id + 1;
+		}
+		else
+		{
+			vd->TotalRecord.Available = true;
 		}
 	}
 }
