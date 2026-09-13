@@ -7,7 +7,7 @@ Test on BlueSolar MPPT 100|20 48 V:
 
 ![Screenshot](images/screenshot3.png)
 
-Next Day:
+Daily Bar Chart:
 
 ![Screenshot](images/screenshot4.png)
 
