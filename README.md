@@ -5,11 +5,11 @@ Uses SDL2 and SDL_ttf. Works on Linux only.
 
 Test on BlueSolar MPPT 100|20 48 V:
 
-![Screenshot](images/screenshot.png)
+![Screenshot](images/screenshot3.png)
 
 Next Day:
 
-![Screenshot](images/screenshot2.png)
+![Screenshot](images/screenshot4.png)
 
 ## TODO
 
